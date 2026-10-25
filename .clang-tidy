@@ -1,0 +1,17 @@
+Checks: >
+  -*,
+  bugprone-*,
+  -bugprone-easily-swappable-parameters,
+  -bugprone-exception-escape,
+  clang-analyzer-*,
+  cppcoreguidelines-pro-type-cstyle-cast,
+  cppcoreguidelines-slicing,
+  misc-redundant-expression,
+  modernize-use-override,
+  modernize-use-nullptr,
+  performance-*,
+  -performance-inefficient-vector-operation,
+  readability-container-size-empty,
+  readability-redundant-string-init
+WarningsAsErrors: ''
+HeaderFilterRegex: 'src/.*'

@@ -1,0 +1,5 @@
+# Style-only suggestions deliberately not applied (see docs/QUALITY.md):
+# explicit loops that build table rows are clearer than std::transform with a lambda.
+useStlAlgorithm
+missingIncludeSystem
+unusedFunction

@@ -1,0 +1,8 @@
+build/
+build-*/
+*.db
+*.db-journal
+uploads/
+lms-error.log
+.vscode/
+.idea/
