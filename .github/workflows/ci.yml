@@ -1,37 +1,52 @@
+
 name: CI
+
 on:
   push:
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   build-and-test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
+
       - name: Install dependencies
         run: sudo apt-get update && sudo apt-get install -y cmake g++ libsqlite3-dev libsodium-dev libgtest-dev pkg-config
-      - name: Configure (warnings are errors in CI)
+
+      - name: Configure
         run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DLMS_WARNINGS_AS_ERRORS=ON
+
       - name: Build
         run: cmake --build build -j"$(nproc)"
+
       - name: Run tests
         run: ctest --test-dir build --output-on-failure
 
   quality:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: build-and-test
+
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
+
       - name: Install tools
         run: |
           sudo apt-get update
           sudo apt-get install -y cmake g++ libsqlite3-dev libsodium-dev libgtest-dev pkg-config cppcheck clang-tidy python3-pip
           pip install gcovr
-      - name: Static analysis (cppcheck + clang-tidy)
+
+      - name: Static analysis
         run: ./scripts/static-analysis.sh
-      - name: Coverage of the business-logic layer (fails below 70 %)
+
+      - name: Coverage
         run: ./scripts/coverage.sh
-      - uses: actions/upload-artifact@v4
+
+      - uses: actions/upload-artifact@v7
         with:
           name: coverage-report
           path: build-cov/coverage*.html
