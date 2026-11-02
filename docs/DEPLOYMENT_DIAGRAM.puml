@@ -1,0 +1,26 @@
+@startuml
+title Moderated Learning Management System - Deployment Diagram
+
+skinparam componentStyle rectangle
+
+node "School Computer" as Computer {
+    node "Ubuntu 24.04 Operating System" as OS {
+        node "LMS Application Environment" as Environment {
+            artifact "lms\nC++17 Console Application" as LMS
+        }
+
+        database "lms.db\nSQLite Database" as DB
+        folder "uploads/\nStudent Submitted Files" as Uploads
+        artifact "lms-error.log\nTechnical Error Log" as Log
+        artifact "SQLite3 Library" as SQLite
+        artifact "libsodium Library" as Sodium
+    }
+}
+
+LMS --> DB : Database operations
+LMS --> Uploads : Store and retrieve files
+LMS --> Log : Record errors
+LMS --> SQLite : Database access
+LMS --> Sodium : Password hashing
+
+@enduml
