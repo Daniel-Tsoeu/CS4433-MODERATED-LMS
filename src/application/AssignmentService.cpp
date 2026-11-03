@@ -74,6 +74,31 @@ void AssignmentService::grantExtension(const Session& s, Id assignmentId, Id stu
   extensions_.upsert(e);
 }
 
+
+void AssignmentService::grantClassExtension(
+    const Session& s, Id assignmentId, TimePoint newDeadline,
+    const std::string& reason) {
+
+  access_.require(s.user(), Permission::GrantExtension);
+
+  auto a = assignments_.findById(assignmentId);
+  if (!a) throw NotFoundError("Assignment not found.");
+
+  access_.requireTeaches(s.user(), a->courseId);
+
+  if (newDeadline <= a->deadline)
+    throw ValidationError(
+        "The new deadline must be later than the assignment's original deadline.");
+
+  ClassExtension e;
+  e.assignmentId = assignmentId;
+  e.newDeadline = newDeadline;
+  e.reason = validation::text(reason, "Reason", 500, 5);
+  e.grantedBy = s.userId();
+  e.grantedAt = clock_.now();
+
+  extensions_.upsertClass(e);
+}
 std::vector<Course> AssignmentService::myCourses(const Session& s) const {
   access_.require(s.user(), Permission::ViewOwnCourses);
   return courses_.listForStudent(s.userId());
@@ -85,9 +110,18 @@ std::vector<AssignmentView> AssignmentService::assignmentsForStudent(const Sessi
   std::vector<AssignmentView> out;
   for (auto& a : assignments_.listByCourse(courseId)) {
     AssignmentView v;
-    const auto ext = extensions_.find(a.id, s.userId());
-    v.effectiveDeadline = a.effectiveDeadline(ext);
-    v.hasExtension = ext.has_value();
+    const auto individualExt = extensions_.find(a.id, s.userId());
+const auto classExt = extensions_.findClass(a.id);
+
+v.effectiveDeadline = a.deadline;
+
+if (classExt && classExt->newDeadline > v.effectiveDeadline)
+  v.effectiveDeadline = classExt->newDeadline;
+
+if (individualExt && individualExt->newDeadline > v.effectiveDeadline)
+  v.effectiveDeadline = individualExt->newDeadline;
+
+v.hasExtension = classExt.has_value() || individualExt.has_value();
     if (auto sub = submissions_.findByAssignmentAndStudent(a.id, s.userId()))
       v.submissionStatus = sub->status();
     v.assignment = std::move(a);

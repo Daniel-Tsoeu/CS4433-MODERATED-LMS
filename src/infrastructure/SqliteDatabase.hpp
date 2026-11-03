@@ -60,7 +60,7 @@ class SqliteDatabase {
   int changes() const { return sqlite3_changes(db_); }
   sqlite3* handle() const { return db_; }
 
-  static constexpr int kSchemaVersion = 1;
+  static constexpr int kSchemaVersion = 2;
 
  private:
   sqlite3* db_ = nullptr;

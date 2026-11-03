@@ -13,7 +13,8 @@ std::vector<RoleMenu::Item> LecturerMenu::items() {
       {"My courses", [this](const Session& s) { myCourses(s); }},
       {"Create an assignment", [this](const Session& s) { createAssignment(s); }},
       {"List assignments of a course", [this](const Session& s) { listAssignments(s); }},
-      {"Grant a deadline extension to a student", [this](const Session& s) { grantExtension(s); }},
+      
+      {"Extend the deadline for the whole class", [this](const Session& s) { grantClassExtension(s); }},
       {"View submissions for an assignment", [this](const Session& s) { viewSubmissions(s); }},
       {"Mark or re-mark a submission", [this](const Session& s) { markSubmission(s); }},
   };
@@ -67,6 +68,16 @@ void LecturerMenu::grantExtension(const Session& s) {
   const std::string reason = con_.askNonEmpty("Reason (at least 5 characters)");
   svc_.assignments.grantExtension(s, assignment, student, deadline, reason);
   con_.info("Extension granted.");
+}
+
+void LecturerMenu::grantClassExtension(const Session& s) {
+  const Id assignment = pickAssignment(s);
+  const TimePoint deadline = con_.askDateTime("New deadline for the whole class");
+  const std::string reason = con_.askNonEmpty("Reason (at least 5 characters)");
+
+  svc_.assignments.grantClassExtension(s, assignment, deadline, reason);
+
+  con_.info("Class-wide extension granted.");
 }
 
 void LecturerMenu::viewSubmissions(const Session& s) {

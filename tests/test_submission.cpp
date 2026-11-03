@@ -67,6 +67,21 @@ TEST_F(SubmissionFlow, ExtensionMovesTheEffectiveDeadlineForThatStudentOnly) {
   EXPECT_EQ(submit(a, "stud2").status, SubmissionStatus::Late);  // stud2: original deadline applies
 }
 
+
+TEST_F(SubmissionFlow, ClassWideExtensionAppliesToAllEnrolledStudents) {
+  const Id a = w.newAssignment(kDay);
+  w.addStudent("stud2", "S0002");
+
+  w.assignmentSvc.grantClassExtension(
+      w.login("lect1"), a, w.clock.now() + 3 * kDay,
+      "Class-wide deadline extension");
+
+  w.clock.advance(2 * kDay);
+
+  EXPECT_EQ(submit(a).status, SubmissionStatus::Submitted);
+  EXPECT_EQ(submit(a, "stud2").status, SubmissionStatus::Submitted);
+}
+
 TEST_F(SubmissionFlow, LateAfterTheExtensionIsPenalisedFromTheExtendedDeadline) {
   const Id a = w.newAssignment(kDay);
   w.assignmentSvc.grantExtension(w.login("lect1"), a, w.studentId, w.clock.now() + 2 * kDay,
@@ -160,6 +175,21 @@ TEST_F(SubmissionFlow, StudentSeesOwnAssignmentsWithTheirEffectiveDeadline) {
   const TimePoint ext = w.clock.now() + 4 * kDay;
   w.assignmentSvc.grantExtension(w.login("lect1"), a, w.studentId, ext, "Illness");
   const auto views = w.assignmentSvc.assignmentsForStudent(w.login("stud1"), w.course);
+  ASSERT_EQ(views.size(), 1u);
+  EXPECT_TRUE(views[0].hasExtension);
+  EXPECT_EQ(views[0].effectiveDeadline, ext);
+  EXPECT_FALSE(views[0].submissionStatus.has_value());
+}
+TEST_F(SubmissionFlow, StudentSeesClassWideExtendedDeadline) {
+  const Id a = w.newAssignment(kDay);
+  const TimePoint ext = w.clock.now() + 4 * kDay;
+
+  w.assignmentSvc.grantClassExtension(
+      w.login("lect1"), a, ext, "Class-wide extension");
+
+  const auto views = w.assignmentSvc.assignmentsForStudent(
+      w.login("stud1"), w.course);
+
   ASSERT_EQ(views.size(), 1u);
   EXPECT_TRUE(views[0].hasExtension);
   EXPECT_EQ(views[0].effectiveDeadline, ext);

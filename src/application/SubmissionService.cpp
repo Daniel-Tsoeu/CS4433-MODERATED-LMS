@@ -33,8 +33,18 @@ SubmissionReceipt SubmissionService::submit(const Session& s, Id assignmentId, c
   const FileInfo info = files_.inspect(filePath);  // EF1: unreadable file
   validation::submissionFile(info);                // EF1: unsupported type / size
 
-  const auto extension = extensions_.find(assignmentId, s.userId());  // AF1
-  const TimePoint effective = assignment->effectiveDeadline(extension);
+ const auto individualExtension = extensions_.find(assignmentId, s.userId());
+const auto classExtension = extensions_.findClass(assignmentId);
+
+TimePoint effective = assignment->deadline;
+
+if (classExtension && classExtension->newDeadline > effective)
+  effective = classExtension->newDeadline;
+
+if (individualExtension && individualExtension->newDeadline > effective)
+  effective = individualExtension->newDeadline;
+
+
   const TimePoint now = clock_.now();
 
   SubmissionReceipt receipt;

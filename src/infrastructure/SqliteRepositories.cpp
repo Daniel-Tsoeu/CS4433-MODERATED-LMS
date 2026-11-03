@@ -300,6 +300,35 @@ std::optional<Extension> SqliteExtensionRepository::find(Id assignmentId, Id stu
   return Extension{st.intAt(0),  st.intAt(1), st.intAt(2), st.intAt(3),
                    st.textAt(4), st.intAt(5), st.intAt(6)};
 }
+void SqliteExtensionRepository::upsertClass(const ClassExtension& e) {
+  db_.prepare(
+         "INSERT INTO class_extensions(assignment_id,new_deadline,reason,granted_by,"
+         "granted_at) VALUES(?,?,?,?,?) "
+         "ON CONFLICT(assignment_id) DO UPDATE SET "
+         "new_deadline=excluded.new_deadline,"
+         "reason=excluded.reason,"
+         "granted_by=excluded.granted_by,"
+         "granted_at=excluded.granted_at")
+      .bindInt(1, e.assignmentId)
+      .bindInt(2, e.newDeadline)
+      .bindText(3, e.reason)
+      .bindInt(4, e.grantedBy)
+      .bindInt(5, e.grantedAt)
+      .run();
+}
+
+std::optional<ClassExtension> SqliteExtensionRepository::findClass(Id assignmentId) const {
+  auto st = db_.prepare(
+      "SELECT id,assignment_id,new_deadline,reason,granted_by,granted_at "
+      "FROM class_extensions WHERE assignment_id=?");
+
+  st.bindInt(1, assignmentId);
+
+  if (!st.step()) return std::nullopt;
+
+  return ClassExtension{st.intAt(0), st.intAt(1), st.intAt(2),
+                        st.textAt(3), st.intAt(4), st.intAt(5)};
+}
 
 // ---------------------------------------------------------- submissions
 namespace {

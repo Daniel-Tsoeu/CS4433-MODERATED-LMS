@@ -43,8 +43,14 @@ configure_file(${CMAKE_SOURCE_DIR}/cmake/SchemaSql.cpp.in
 
 # ---- common compile options ----------------------------------------------
 add_library(lms_options INTERFACE)
-target_compile_options(lms_options INTERFACE -Wall -Wextra -Wpedantic -Wshadow
-                       -Wnon-virtual-dtor -Woverloaded-virtual)
+if(MSVC)
+    target_compile_options(lms_options INTERFACE /W4)
+else()
+    target_compile_options(lms_options INTERFACE
+        -Wall -Wextra -Wpedantic -Wshadow
+        -Wnon-virtual-dtor -Woverloaded-virtual
+    )
+endif()
 if(LMS_WARNINGS_AS_ERRORS)
   target_compile_options(lms_options INTERFACE -Werror)
 endif()

@@ -66,13 +66,16 @@ class SqliteAssignmentRepository final : public domain::IAssignmentRepository {
 class SqliteExtensionRepository final : public domain::IExtensionRepository {
  public:
   explicit SqliteExtensionRepository(SqliteDatabase& db) : db_(db) {}
+
   void upsert(const domain::Extension& e) override;
   std::optional<domain::Extension> find(domain::Id assignmentId, domain::Id studentId) const override;
+
+  void upsertClass(const domain::ClassExtension& e) override;
+  std::optional<domain::ClassExtension> findClass(domain::Id assignmentId) const override;
 
  private:
   SqliteDatabase& db_;
 };
-
 class SqliteSubmissionRepository final : public domain::ISubmissionRepository {
  public:
   explicit SqliteSubmissionRepository(SqliteDatabase& db) : db_(db) {}

@@ -1,7 +1,11 @@
 #include "presentation/Console.hpp"
-
+#include <iostream>
+#ifdef _WIN32
+#include <conio.h>
+#else
 #include <termios.h>
 #include <unistd.h>
+#endif
 
 #include <cerrno>
 #include <cmath>
@@ -97,6 +101,48 @@ bool Console::confirm(const std::string& prompt) {
 }
 
 std::string Console::askPassword(const std::string& prompt) {
+  std::string s;
+  out_ << prompt << ": " << std::flush;
+
+#ifdef _WIN32
+  if (hidePasswords_ && &in_ == &std::cin) {
+    int ch;
+    while ((ch = _getch()) != '\r') {
+      if (ch == '\b') {
+        if (!s.empty()) s.pop_back();
+      } else if (ch == 3) {
+        throw InputClosed();
+      } else if (ch >= 32 && ch <= 126) {
+        s.push_back(static_cast<char>(ch));
+      }
+    }
+    out_ << '\n';
+  } else {
+    if (!std::getline(in_, s)) throw InputClosed();
+  }
+#else
+  termios saved{};
+  const bool tty = hidePasswords_ && isatty(STDIN_FILENO) &&
+                   tcgetattr(STDIN_FILENO, &saved) == 0;
+
+  if (tty) {
+    termios t = saved;
+    t.c_lflag &= static_cast<tcflag_t>(~ECHO);
+    tcsetattr(STDIN_FILENO, TCSANOW, &t);
+  }
+
+  const bool ok = static_cast<bool>(std::getline(in_, s));
+
+  if (tty) {
+    tcsetattr(STDIN_FILENO, TCSANOW, &saved);
+    out_ << '\n';
+  }
+
+  if (!ok) throw InputClosed();
+#endif
+
+  return s;
+}
   termios saved{};
   const bool tty = hidePasswords_ && isatty(STDIN_FILENO) && tcgetattr(STDIN_FILENO, &saved) == 0;
   if (tty) {

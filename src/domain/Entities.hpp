@@ -31,6 +31,15 @@ struct Extension {
   TimePoint grantedAt = 0;
 };
 
+struct ClassExtension {
+  Id id = 0;
+  Id assignmentId = 0;
+  TimePoint newDeadline = 0;
+  std::string reason;
+  Id grantedBy = 0;
+  TimePoint grantedAt = 0;
+};
+
 struct Assignment {
   Id id = 0;
   Id courseId = 0;

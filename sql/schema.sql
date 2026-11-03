@@ -80,6 +80,16 @@ CREATE TABLE extensions (
   UNIQUE (assignment_id, student_id)
 );
 
+CREATE TABLE class_extensions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  assignment_id INTEGER NOT NULL REFERENCES assignments(id),
+  new_deadline INTEGER NOT NULL,
+  reason TEXT NOT NULL CHECK (length(reason) >= 5),
+  granted_by INTEGER NOT NULL REFERENCES lecturers(user_id),
+  granted_at INTEGER NOT NULL,
+  UNIQUE (assignment_id)
+);
+
 CREATE TABLE submissions (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   assignment_id INTEGER NOT NULL REFERENCES assignments(id),

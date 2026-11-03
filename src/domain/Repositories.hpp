@@ -58,9 +58,14 @@ class IAssignmentRepository {
 class IExtensionRepository {
  public:
   virtual ~IExtensionRepository() = default;
+
   /// One extension per (assignment, student); a second grant replaces the first.
   virtual void upsert(const Extension& e) = 0;
   virtual std::optional<Extension> find(Id assignmentId, Id studentId) const = 0;
+
+  /// One class-wide extension per assignment; a second grant replaces the first.
+  virtual void upsertClass(const ClassExtension& e) = 0;
+  virtual std::optional<ClassExtension> findClass(Id assignmentId) const = 0;
 };
 
 /// A submission joined with the names needed to display or authorise it.

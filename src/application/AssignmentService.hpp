@@ -31,6 +31,8 @@ class AssignmentService {
   void grantExtension(const Session& s, domain::Id assignmentId, domain::Id studentId,
                       domain::TimePoint newDeadline, const std::string& reason);
 
+  void grantClassExtension(const Session& s, domain::Id assignmentId,
+                         domain::TimePoint newDeadline, const std::string& reason);                   
   std::vector<domain::Course> myCourses(const Session& s) const;
   std::vector<AssignmentView> assignmentsForStudent(const Session& s, domain::Id courseId) const;
 

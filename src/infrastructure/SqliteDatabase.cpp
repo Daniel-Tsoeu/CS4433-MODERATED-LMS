@@ -134,13 +134,31 @@ void SqliteDatabase::initialiseSchema() {
     auto st = prepare("PRAGMA user_version");
     if (st.step()) version = static_cast<int>(st.intAt(0));
   }
+
   if (version == kSchemaVersion) return;
-  if (version != 0)
-    throw PersistenceError("The database has schema version " + std::to_string(version) +
-                           " but this program expects " + std::to_string(kSchemaVersion) + ".");
+
+  if (version > kSchemaVersion || version < 0) {
+    throw PersistenceError("Unsupported database schema version " +
+                           std::to_string(version) + ".");
+  }
+
   exec("BEGIN IMMEDIATE");
   try {
-    exec(schemaSql());
+    if (version == 0) {
+      exec(schemaSql());
+    } else if (version == 1) {
+      exec(
+          "CREATE TABLE class_extensions ("
+          "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+          "assignment_id INTEGER NOT NULL REFERENCES assignments(id),"
+          "new_deadline INTEGER NOT NULL,"
+          "reason TEXT NOT NULL CHECK (length(reason) >= 5),"
+          "granted_by INTEGER NOT NULL REFERENCES lecturers(user_id),"
+          "granted_at INTEGER NOT NULL,"
+          "UNIQUE (assignment_id)"
+          ");");
+    }
+
     exec(("PRAGMA user_version = " + std::to_string(kSchemaVersion)).c_str());
     exec("COMMIT");
   } catch (...) {

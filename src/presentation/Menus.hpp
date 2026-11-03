@@ -39,6 +39,7 @@ class LecturerMenu final : public RoleMenu {
   void createAssignment(const application::Session& s);
   void listAssignments(const application::Session& s);
   void grantExtension(const application::Session& s);
+  void grantClassExtension(const application::Session& s);
   void viewSubmissions(const application::Session& s);
   void markSubmission(const application::Session& s);
   domain::Id pickCourse(const application::Session& s);
