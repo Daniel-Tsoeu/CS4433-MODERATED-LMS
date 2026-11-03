@@ -1,7 +1,19 @@
 // Composition root: the ONLY place concrete classes are chosen and wired
 // together (dependency inversion). The database is created here and passed
 // in; there is no global/singleton connection.
+#ifdef _WIN32
+#include <process.h>
+#else
 #include <unistd.h>
+#endif
+
+#include <cstdio>
+
+#ifdef _WIN32
+#include <io.h>
+#else
+#include <unistd.h>
+#endif
 
 #include <ctime>
 #include <fstream>
@@ -95,7 +107,13 @@ int main(int argc, char** argv) {
     // Presentation
     presentation::Services services{auth,    admin,      assignmentService,   submissionService,
                                     marking, moderation, notificationService, logError};
-    presentation::Console console(std::cin, std::cout, isatty(STDIN_FILENO) != 0);
+#ifdef _WIN32
+    const bool interactive = _isatty(_fileno(stdin)) != 0;
+#else
+    const bool interactive = isatty(STDIN_FILENO) != 0;
+#endif
+
+    presentation::Console console(std::cin, std::cout, interactive);
     return presentation::ConsoleApp(console, services).run();
   } catch (const std::exception& e) {
     logError(std::string("Startup failure: ") + e.what());

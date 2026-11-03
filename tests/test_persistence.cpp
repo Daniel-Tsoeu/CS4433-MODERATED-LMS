@@ -150,12 +150,22 @@ TEST(Persistence, DataSurvivesClosingAndReopeningTheDatabaseFile) {
 TEST(Persistence, NewDatabaseFileIsOwnerOnly) {
   TempDir tmp;
   const auto path = tmp.path / "lms.db";
-  { SqliteDatabase db(path.string()); }
-  const auto perms = std::filesystem::status(path).permissions();
-  namespace fs = std::filesystem;
-  EXPECT_EQ(perms & (fs::perms::group_all | fs::perms::others_all), fs::perms::none);
-}
 
+  { SqliteDatabase db(path.string()); }
+
+#ifdef _WIN32
+  // Windows uses ACLs rather than POSIX permission bits.
+  EXPECT_TRUE(std::filesystem::exists(path));
+#else
+  namespace fs = std::filesystem;
+  const auto perms = fs::status(path).permissions();
+
+  EXPECT_EQ(
+      perms & (fs::perms::group_all | fs::perms::others_all),
+      fs::perms::none
+  );
+#endif
+}
 TEST(Persistence, DatabaseErrorBecomesPersistenceErrorNotACrash) {
   EXPECT_THROW(SqliteDatabase("/nonexistent_dir/x/lms.db"), PersistenceError);
 }

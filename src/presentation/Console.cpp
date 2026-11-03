@@ -105,7 +105,7 @@ std::string Console::askPassword(const std::string& prompt) {
   out_ << prompt << ": " << std::flush;
 
 #ifdef _WIN32
-  if (hidePasswords_ && &in_ == &std::cin) {
+  if (hidePasswords_) {
     int ch;
     while ((ch = _getch()) != '\r') {
       if (ch == '\b') {
@@ -142,23 +142,4 @@ std::string Console::askPassword(const std::string& prompt) {
 #endif
 
   return s;
-}
-  termios saved{};
-  const bool tty = hidePasswords_ && isatty(STDIN_FILENO) && tcgetattr(STDIN_FILENO, &saved) == 0;
-  if (tty) {
-    termios t = saved;
-    t.c_lflag &= static_cast<tcflag_t>(~ECHO);
-    tcsetattr(STDIN_FILENO, TCSANOW, &t);
-  }
-  std::string s;
-  out_ << prompt << ": " << std::flush;
-  const bool ok = static_cast<bool>(std::getline(in_, s));
-  if (tty) {
-    tcsetattr(STDIN_FILENO, TCSANOW, &saved);
-    out_ << '\n';
-  }
-  if (!ok) throw InputClosed();
-  return s;
-}
-
-}  // namespace lms::presentation
+}}  // namespace lms::presentation

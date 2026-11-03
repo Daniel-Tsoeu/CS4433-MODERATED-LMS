@@ -8,7 +8,11 @@ namespace lms::presentation {
 std::string formatDateTime(domain::TimePoint t) {
   const std::time_t tt = static_cast<std::time_t>(t);
   std::tm tm{};
+  #ifdef _WIN32
+  localtime_s(&tm, &tt);
+#else
   localtime_r(&tt, &tm);
+#endif
   char buf[32];
   std::strftime(buf, sizeof buf, "%Y-%m-%d %H:%M", &tm);
   return buf;
